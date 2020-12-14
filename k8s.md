@@ -12,3 +12,23 @@ sudo vi /etc/docker/daemon.json
   },
   "storage-driver": "overlay2"
 }
+
+# Выключить swap
+
+sudo swapoff -a
+
+# Настроить SELinux, если включен
+
+sudo setenforce 0 sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+
+# Установка tc
+
+sudo yum install tс
+
+# Если используется iptables, разрешить ему видеть bridged трафик
+
+sudo vi /etc/sysctl.d/k8s.conf
+
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+sysctl --system
