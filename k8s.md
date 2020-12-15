@@ -42,10 +42,10 @@ sysctl --system
     7  df -h
     8  cat /etc/fstab
     9  sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab \\n&& sudo swapoff -a \\n&& sudo modprobe overlay \\n&& sudo modprobe br_netfilter
-   10  cat /etc/fstab
-   11  sudo tee /etc/sysctl.d/kubernetes.conf<<EOF\nnet.bridge.bridge-nf-call-ip6tables = 1\nnet.bridge.bridge-nf-call-iptables = 1\nnet.ipv4.ip_forward = 1\nEOF
-   12  cat /etc/sysctl.d/kubernetes.conf
-   13  sudo sysctl --system
+   10  cat /etc/fstab  
+   11  sudo tee /etc/sysctl.d/kubernetes.conf<<EOF\nnet.bridge.bridge-nf-call-ip6tables = 1\nnet.bridge.bridge-nf-call-iptables = 1\nnet.ipv4.ip_forward = 1\nEOF  
+   12  cat /etc/sysctl.d/kubernetes.conf  
+   13  sudo sysctl --system  
    14  sudo apt update \\n&& sudo apt install -y curl gnupg2 software-properties-common apt-transport-https ca-certificates \\n&& curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - \\n&& sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \\n&& sudo apt update \\n&& sudo apt install -y containerd.io docker-ce docker-ce-cli \\n&& sudo usermod -aG docker ambr \\n&& sudo mkdir -p /etc/systemd/system/docker.service.d
    15  sudo tee /etc/docker/daemon.json <<EOF\n{\n  "exec-opts": ["native.cgroupdriver=systemd"],\n  "log-driver": "json-file",\n  "log-opts": {\n    "max-size": "100m"\n  },\n  "storage-driver": "overlay2"\n}\nEOF
    16  cat /etc/docker/daemon.json
