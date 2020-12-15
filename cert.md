@@ -1,9 +1,20 @@
 #### generate pkcs12
+#### You can't directly import private key information to a keystore (.JKS) using keytool. Instead, you must convert the certificate and private key into a PKCS 12 (.p12) file, and then you can import the PKCS 12 file into your keystore.  
 `openssl pkcs12 -export -out server.p12 -inkey server.key -in server.crt -certfile CACert.crt`  
-#### Generate a new private key and Certificate Signing Request
-`openssl req -out CSR.csr -new -newkey rsa:2048 -nodes -keyout privateKey.key`  
+`openssl pkcs12 -export -in server.crt -inkey server.key -name host -out filename-new-PKCS-12.p12`
+
+1) Create Root Key  
+`openssl genrsa -des3 -out rootCA.key 4096`  
+2) Create and self sign the Root Certificate  
+`openssl req -x509 -new -nodes -key root/rootCA.key -sha256 -days 3650 -out root/rootCA.crt`  
+или?  
+`openssl req -newkey rsa:4096 -keyform PEM -keyout root/rootCA.key -x509 -days 3650 -outform PEM -out root/rootCA.cer`  
+3) Generate a new private key and Certificate Signing Request  
+`openssl req -out CSR.csr -new -newkey rsa:2048 -nodes -keyout privateKey.key`
+4) Generate the certificate using the mydomain csr and key along with the CA Root key  
+`openssl x509 -req -in mydomain.com.csr -CA rootCA.crt -CAkey rootCA.key -CAcreateserial -out mydomain.com.crt -days 3650 -sha256`  
 #### Generate a self-signed certificate (see How to Create and Install an Apache Self Signed Certificate for more info)
-`openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -keyout privateKey.key -out certificate.crt`  
+`openssl req -x509 -sha256 -nodes -days 3650 -newkey rsa:2048 -keyout privateKey.key -out certificate.crt`  
 #### Generate a certificate signing request (CSR) for an existing private key
 `openssl req -out CSR.csr -key privateKey.key -new`  
 #### Generate a certificate signing request based on an existing certificate
@@ -40,9 +51,22 @@ You can add -nocerts to only output the private key or add -
 ### keytool | Java Keytool Commands for Creating and Importing
 #### While we create a Java keystore, we will first create the .jks file that will initially only contain the private key using the keytool utility.
 `keytool -genkey -keystore keystore.jks -alias ssl -validity 3650 -keysize 2048`  
- #### keytool import
- `keytool -import -keystore clientkeystore -file client.cer -alias client`  
+#### keytool import
+`keytool -import -keystore clientkeystore -file client.cer -alias client`  
 
+import the PKCS 12 certificate by executing the following command:
+ 
+`keytool -importkeystore -deststorepass [password] -destkeystore [filename-new-keystore.jks] -srckeystore [filename-new-PKCS-12.p12] -srcstoretype PKCS12`  
+where the [password] is the password you specified when you created the private key.
+
+Execute one of the following commands:
+
+If you have a CA bundle file, import it by executing the following command:  
+`keytool -import -alias bundle -trustcacerts -file [ca_bundle] -keystore [filename-new-keystore.jks]`  
+
+If you don't have a CA bundle file, import certificates by executing the following command for each certificate type:  
+`keytool -import -alias [certificate-type] -trustcacerts -file [certificate-file] -keystore [filename-new-keystore.jks]`  
+where [certificate-type] is the type of certificate (for example, root or intermediate).
  
 These commands allow you to generate a new Java Keytool keystore file, create a CSR, and import certificates. Any root or intermediate certificates will need to be imported before importing the primary certificate for your domain.
 
