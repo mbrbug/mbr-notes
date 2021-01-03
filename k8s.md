@@ -27,11 +27,13 @@ sudo yum install tс
 
 # Если используется iptables, разрешить ему видеть bridged трафик
 
-sudo vi /etc/sysctl.d/k8s.conf
-
+```
+cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
-sysctl --system
+EOF
+sudo sysctl --system
+```
 ---
     1  sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
     2  sudo halt
